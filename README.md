@@ -39,3 +39,30 @@ osx w/ built in microphone
     no talking
     no talking
     
+### Discover devices
+    (venv) Brads-MBP:burningaudio brad$ python -m burningaudio -l
+    ffmpeg version 4.0 Copyright (c) 2000-2018 the FFmpeg developers
+      built with Apple LLVM version 9.1.0 (clang-902.0.39.1)
+      configuration: --prefix=/usr/local/Cellar/ffmpeg/4.0 --enable-shared --enable-pthreads --enable-version3 --enable-hardcoded-tables --enable-avresample --cc=clang --host-cflags= --host-ldflags= --enable-gpl --enable-libmp3lame --enable-libx264 --enable-libxvid --enable-opencl --enable-videotoolbox --disable-lzma
+      libavutil      56. 14.100 / 56. 14.100
+      libavcodec     58. 18.100 / 58. 18.100
+      libavformat    58. 12.100 / 58. 12.100
+      libavdevice    58.  3.100 / 58.  3.100
+      libavfilter     7. 16.100 /  7. 16.100
+      libavresample   4.  0.  0 /  4.  0.  0
+      libswscale      5.  1.100 /  5.  1.100
+      libswresample   3.  1.100 /  3.  1.100
+      libpostproc    55.  1.100 / 55.  1.100
+    [AVFoundation input device @ 0x7ffe8450f880] AVFoundation video devices:
+    [AVFoundation input device @ 0x7ffe8450f880] [0] FaceTime HD Camera
+    [AVFoundation input device @ 0x7ffe8450f880] [1] Capture screen 0
+    [AVFoundation input device @ 0x7ffe8450f880] AVFoundation audio devices:
+    [AVFoundation input device @ 0x7ffe8450f880] [0] AirBeamTV Audio
+    [AVFoundation input device @ 0x7ffe8450f880] [1] Built-in Microphone
+    "": Input/output error
+    
+We want the 'Built-in Microphone' device, the [1] before its name indicates it is audio device index 1.
+
+The default device index for the CLI is 1, if you need to specify another use the -i option
+
+    python -m burningaudio -t .05 -i 0
