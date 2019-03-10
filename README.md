@@ -14,8 +14,9 @@ references
     https://trac.ffmpeg.org/wiki/Capture/ALSA
     
 ### Installation
-
+    
     sudo apt-get install ffmpeg
+    sudo pip install git+https://bitbucket.org:B_rad_C/burning-audio.git
     
 
 ### CLI Usage
@@ -44,7 +45,7 @@ This is an infinite loop, use control+c to exit.
 ### API usage
 See inline documentation for explanation of arguments.
     
-    for sample in burningaudio.detect_activity(.05, 1, .5):
+    for sample in burningaudio.detect_activity():
         if sample is None:
             # no activity
             pass
@@ -58,23 +59,50 @@ See inline documentation for explanation of arguments.
 This is an infinite loop, kill process or use control+c to exit.
     
 ### Discover devices
-    pi@raspberrypi:~/Code/burningaudio $ python3 -m burningaudio -l
-    **** List of CAPTURE Hardware Devices ****
-    card 1: VF0790 [Live! Cam Chat HD VF0790], device 0: USB Audio [USB Audio]
-      Subdevices: 1/1
-      Subdevice #0: subdevice #0
+    python -m burningaudio -l
     
-The device index is the card number at the beginning of the line showing your device's name, in this case 'Live! Cam' is device index 1
+    null
+        Discard all samples (playback) or generate zero samples (capture)
+    default:CARD=VF0790
+        Live! Cam Chat HD VF0790, USB Audio
+        Default Audio Device
+    sysdefault:CARD=VF0790
+        Live! Cam Chat HD VF0790, USB Audio
+        Default Audio Device
+    front:CARD=VF0790,DEV=0
+        Live! Cam Chat HD VF0790, USB Audio
+        Front speakers
+        
+    ...
+    
+    dsnoop:CARD=VF0790,DEV=0
+        Live! Cam Chat HD VF0790, USB Audio
+        Direct sample snooping device
+    hw:CARD=VF0790,DEV=0
+        Live! Cam Chat HD VF0790, USB Audio
+        Direct hardware device without any conversions
+    plughw:CARD=VF0790,DEV=0
+        Live! Cam Chat HD VF0790, USB Audio
+        Hardware device with all software conversions
+    
+In this example the name of our device is:
 
-The default device index for the CLI is 1, if you need to specify another use the -i option
+    hw:CARD=VF0790,DEV=0
+    
+### Specify device
+Using the default device input is fine for testing but for real world use it is recommended to specify the device name to ensure repeatability, as the default device may change unpredictably.
+    
+    for sample in burningaudio.detect_activity('hw:CARD=VF0790,DEV=0'):
+        pass
+use --input (-i) on the command line
 
-    python -m burningaudio -i 0
+    python -m burningaudio -i hw:CARD=VF0790,DEV=0
 
 ### Decay
 
 Decay is used to smooth out gaps between words and other short pauses, it can be a float or int representing the number of seconds of silence to return to a no activity state.
 
-##### no decay
+    python -m burningaudio --decay 0
     not talking
     not talking
     talking
@@ -90,9 +118,7 @@ Decay is used to smooth out gaps between words and other short pauses, it can be
     talking
     talking
 
-
-##### decay .5
-
+    python -m burningaudio --decay .5
     not talking
     not talking
     not talking

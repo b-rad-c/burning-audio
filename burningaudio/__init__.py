@@ -1,7 +1,7 @@
 import subprocess
 
 
-def detect_activity(threshold, index, decay=.5, debug=False):
+def detect_activity(input_device, threshold=.05, decay=.5, debug=False):
     """
     Detect activity on an audio device input
         yield None if no activity over threshold
@@ -9,8 +9,8 @@ def detect_activity(threshold, index, decay=.5, debug=False):
 
     Audio signal is processed at a sample rate of 1khz
 
+    :param input_device: str, name of input device to capture from, use list_devices to find name
     :param threshold: float, used to determine vocal activity from background noise
-    :param index: int, the audio device index to read
     :param decay: float, number of seconds after last detected activity to return to no activity state,
         used to smooth out gaps between words
     :param debug: bool, if True do not suppress ffmpeg logging, do not use unless actively debugging this will cause
@@ -22,11 +22,13 @@ def detect_activity(threshold, index, decay=.5, debug=False):
     decaying = False
     current_decay = 0
 
+    input_device = get_default_input() if input_device is None else input_device
+
     args = ['ffmpeg']
     if not debug:
         # suppress ffmpeg logging unless actively debugging
         args += ['-loglevel', 'quiet']
-    args += ['-f', 'alsa', '-i', 'hw:' + index, '-f', 'u24le', '-ac', '1', '-ar', str(sample_rate), '-']
+    args += ['-f', 'alsa', '-i', input_device, '-f', 'u24le', '-ac', '1', '-ar', str(sample_rate), '-']
 
     process = subprocess.Popen(args, stdout=subprocess.PIPE)
 
@@ -50,7 +52,7 @@ def detect_activity(threshold, index, decay=.5, debug=False):
                     yield None
 
             else:
-                raise ValueError('ffmpeg exited early, you probably supplied an invalid device index, try debug mode')
+                raise ValueError('ffmpeg exited early, you probably supplied an invalid device, try debug mode')
 
     except KeyboardInterrupt:
         process.kill()
@@ -58,8 +60,20 @@ def detect_activity(threshold, index, decay=.5, debug=False):
 
 def list_devices():
     """list available audio devices
-    :returns: string, result of running command 'arecord -l'
+    :returns: string, result of running command 'arecord -L'
     """
-    process = subprocess.Popen(['arecord', '-l'], stdout=subprocess.PIPE)
+    process = subprocess.Popen(['arecord', '-L'], stdout=subprocess.PIPE)
     process.wait()
     return process.stdout.read().decode('utf-8')
+
+
+def get_default_input():
+    """find default device input
+    :returns: str, name of input device
+    """
+
+    for line in list_devices().splitlines():
+        if line.startswith('default:'):
+            return line.strip()
+
+    raise ValueError('Could not find default input device.')
