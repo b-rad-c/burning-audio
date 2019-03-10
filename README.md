@@ -16,7 +16,7 @@ references
 ### Installation
     
     sudo apt-get install ffmpeg
-    sudo pip install git+https://bitbucket.org:B_rad_C/burning-audio.git
+    sudo pip install git+https://B_rad_C@bitbucket.org/B_rad_C/burning-audio.git#egg=burning-audio
     
 
 ### CLI Usage
