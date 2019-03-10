@@ -1,7 +1,7 @@
 import subprocess
 
 
-def detect_activity(threshold, index, decay=.5):
+def detect_activity(threshold, index, decay=.5, debug=False):
     """
     Detect activity on an audio device input
         yield None if no activity over threshold
@@ -13,6 +13,8 @@ def detect_activity(threshold, index, decay=.5):
     :param index: int, the audio device index to read
     :param decay: float, number of seconds after last detected activity to return to no activity state,
         used to smooth out gaps between words
+    :param debug: bool, if True do not suppress ffmpeg logging, do not use unless actively debugging this will cause
+        unexpected results when detecting audio activity
     :returns None
     """
     sample_rate = 1000
@@ -20,9 +22,11 @@ def detect_activity(threshold, index, decay=.5):
     decaying = False
     current_decay = 0
 
-    # reference: https://ffmpeg.org/ffmpeg-devices.html#avfoundation
-    args = ['ffmpeg', '-loglevel', 'quiet', '-f', 'avfoundation',
-            '-i', f':{index}', '-f', 'u24le', '-ac', '1', '-ar', str(sample_rate), '-']
+    args = ['ffmpeg']
+    if not debug:
+        # suppress ffmpeg logging unless actively debugging
+        args += ['-loglevel', 'quiet']
+    args += ['-f', 'alsa', '-i', 'hw:' + index, '-f', 'u24le', '-ac', '1', '-ar', str(sample_rate), '-']
 
     process = subprocess.Popen(args, stdout=subprocess.PIPE)
 
@@ -31,7 +35,7 @@ def detect_activity(threshold, index, decay=.5):
             buffer = process.stdout.read(3)
             if buffer:
                 value = int.from_bytes(buffer, 'little', signed=False)
-                volume = value / 16_777_215
+                volume = value / 16777215
                 if abs(.5 - volume) > threshold:
                     yield value
                     decaying = True
@@ -46,13 +50,16 @@ def detect_activity(threshold, index, decay=.5):
                     yield None
 
             else:
-                raise ValueError('ffmpeg exited early, you have probably supplied an invalid device index.')
+                raise ValueError('ffmpeg exited early, you probably supplied an invalid device index, try debug mode')
 
     except KeyboardInterrupt:
         process.kill()
 
 
 def list_devices():
-    args = ['ffmpeg', '-f', 'avfoundation', '-list_devices', 'true', '-i', '""']
-    process = subprocess.Popen(args, stdout=subprocess.PIPE)
+    """list available audio devices
+    :returns: string, result of running command 'arecord -l'
+    """
+    process = subprocess.Popen(['arecord', '-l'], stdout=subprocess.PIPE)
     process.wait()
+    return process.stdout.read().decode('utf-8')
