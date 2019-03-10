@@ -36,16 +36,16 @@ This is an infinite loop, use control+c to exit.
     
 ### API usage
 
-        for sample in burningaudio.detect_activity(.05, 1, .5):
-            if sample is None:
-                # no activity
-                pass
-    
-            else:
-                # we have activity (or have not decayed since last activity)
-                # sample is a non negative int representing the decoded audio sample,
-                # see in-line doc string for more details
-                do_something(sample)
+    for sample in burningaudio.detect_activity(.05, 1, .5):
+        if sample is None:
+            # no activity
+            pass
+
+        else:
+            # we have activity (or have not decayed since last activity)
+            # sample is a non negative int representing the decoded audio sample,
+            # see in-line doc string for more details
+            do_something(sample)
             
 This is an infinite loop, kill process or use control+c to exit.
     

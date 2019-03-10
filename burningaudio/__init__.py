@@ -47,7 +47,7 @@ def detect_activity(threshold, index, decay=.5):
 
             else:
                 raise ValueError('ffmpeg exited early, you have probably supplied an invalid device index.')
-            
+
     except KeyboardInterrupt:
         process.kill()
 
